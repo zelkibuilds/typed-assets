@@ -9,7 +9,7 @@ export type ConfigEntry = {
 
 export type AliasConfig = {
   compilerOptions: {
-    baseUrl: "string";
+    baseUrl: string;
     paths: Record<string, string[]>;
   };
 };
