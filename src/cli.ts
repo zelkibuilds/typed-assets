@@ -9,7 +9,14 @@ const configFilename = "typed-assets.config.ts";
 const configPath = path.resolve(configFilename);
 
 (async function executeGenerateAssetTypes() {
-  const config: Config = await import(configPath);
+  let config: Config;
+  try {
+    config = await import(configPath);
+  } catch (e) {
+    console.error("Error(typed-assets): missing config file");
+    return;
+  }
+
   await Promise.all(
     config.entries.map((entry) =>
       processEntry(entry, Boolean(config.prettierFormat))
