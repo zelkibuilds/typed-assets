@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "prepare": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc"
   },
   "author": "",
   "license": "ISC",
-  "bin": "./src/cli.ts",
+  "bin": "./build/cli.js",
   "devDependencies": {
     "@types/node": "^18.11.2",
     "prettier": "^2.7.1",
