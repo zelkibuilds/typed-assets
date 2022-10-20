@@ -23,7 +23,13 @@ export async function generateAssetTypes({
     validExtensions.some((validExtension) => asset.endsWith(validExtension))
   );
 
-  const discriminatedUnion = matchingAssets.join(" | ");
+  if (matchingAssets.length === 0) {
+    return;
+  }
+
+  const discriminatedUnion = matchingAssets
+    .map((asset) => `'${asset}'`)
+    .join(" | ");
   const fileContent = `export type ${type} = ${discriminatedUnion};`;
 
   await writeFile(outFilePath, fileContent);

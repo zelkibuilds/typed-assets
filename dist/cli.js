@@ -30,14 +30,39 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const node_path_1 = __importDefault(require("node:path"));
 const validator_1 = require("./validator");
 const generate_types_1 = require("./generate-types");
-const configFilename = "typed-assets.config.ts";
+const alias_resolver_1 = require("./alias-resolver");
+const configFilename = "typed-assets.config.cjs";
 const configPath = node_path_1.default.resolve(configFilename);
+const tsConfigPath = node_path_1.default.resolve("tsconfig.json");
 (async function executeGenerateAssetTypes() {
-    const config = await Promise.resolve().then(() => __importStar(require(configPath)));
+    let config;
+    try {
+        config = await Promise.resolve().then(() => __importStar(require(configPath)));
+    }
+    catch (e) {
+        console.error("Error(typed-assets): missing config file", e);
+        return;
+    }
+    if (config.aliasedPaths) {
+        let tsConfig;
+        try {
+            tsConfig = await Promise.resolve().then(() => __importStar(require(tsConfigPath)));
+        }
+        catch (e) {
+            console.error("`aliasedPath` option requires missing tsconfig.json file at project root");
+            return;
+        }
+        (0, validator_1.validateAliasConfig)(tsConfig);
+        const resolvedEntries = config.entries.map((aliasedEntry) => (0, alias_resolver_1.resolveAliasedEntry)(aliasedEntry, tsConfig));
+        config = {
+            ...config,
+            entries: resolvedEntries,
+        };
+    }
     await Promise.all(config.entries.map((entry) => processEntry(entry, Boolean(config.prettierFormat))));
 })();
 async function processEntry(entry, globalFormat) {
-    (0, validator_1.validate)(entry);
+    (0, validator_1.validateEntry)(entry);
     return (0, generate_types_1.generateAssetTypes)({
         ...entry,
         validExtensions: formatExtensions(entry.validExtensions),

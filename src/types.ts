@@ -7,7 +7,15 @@ export type ConfigEntry = {
   prettierFormat?: boolean;
 };
 
+export type AliasConfig = {
+  compilerOptions: {
+    baseUrl: "string";
+    paths: Record<string, string[]>;
+  };
+};
+
 export type Config = {
   entries: ConfigEntry[];
   prettierFormat?: boolean;
+  aliasedPaths?: boolean;
 };

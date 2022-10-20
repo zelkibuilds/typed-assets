@@ -15,7 +15,12 @@ async function generateAssetTypes({ inputDir, outputDir, validExtensions, outFil
     const outFilePath = node_path_1.default.join(outputDir, outFilename);
     const assets = await (0, promises_1.readdir)(inputDir);
     const matchingAssets = assets.filter((asset) => validExtensions.some((validExtension) => asset.endsWith(validExtension)));
-    const discriminatedUnion = matchingAssets.join(" | ");
+    if (matchingAssets.length === 0) {
+        return;
+    }
+    const discriminatedUnion = matchingAssets
+        .map((asset) => `'${asset}'`)
+        .join(" | ");
     const fileContent = `export type ${type} = ${discriminatedUnion};`;
     await (0, promises_1.writeFile)(outFilePath, fileContent);
     if (!prettierFormat)
