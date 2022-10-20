@@ -16,15 +16,22 @@ export async function generateAssetTypes({
   outFilename = DEFAULTS.filename,
   type = DEFAULTS.type,
   prettierFormat,
+  omitExtension = false,
 }: ConfigEntry) {
   const outFilePath = path.join(outputDir, outFilename);
   const assets = await readdir(inputDir);
-  const matchingAssets = assets.filter((asset) =>
+  let matchingAssets = assets.filter((asset) =>
     validExtensions.some((validExtension) => asset.endsWith(validExtension))
   );
 
   if (matchingAssets.length === 0) {
     return;
+  }
+
+  if (omitExtension) {
+    matchingAssets = matchingAssets.map((asset) =>
+      asset.slice(0, asset.lastIndexOf("."))
+    );
   }
 
   const discriminatedUnion = matchingAssets

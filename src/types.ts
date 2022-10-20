@@ -5,6 +5,7 @@ export type ConfigEntry = {
   outFilename?: string;
   type?: string;
   prettierFormat?: boolean;
+  omitExtension?: boolean;
 };
 
 export type AliasConfig = {

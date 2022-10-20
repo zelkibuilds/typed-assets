@@ -11,12 +11,15 @@ const DEFAULTS = {
     filename: "asset-types.ts",
     type: "Asset",
 };
-async function generateAssetTypes({ inputDir, outputDir, validExtensions, outFilename = DEFAULTS.filename, type = DEFAULTS.type, prettierFormat, }) {
+async function generateAssetTypes({ inputDir, outputDir, validExtensions, outFilename = DEFAULTS.filename, type = DEFAULTS.type, prettierFormat, omitExtension = false, }) {
     const outFilePath = node_path_1.default.join(outputDir, outFilename);
     const assets = await (0, promises_1.readdir)(inputDir);
-    const matchingAssets = assets.filter((asset) => validExtensions.some((validExtension) => asset.endsWith(validExtension)));
+    let matchingAssets = assets.filter((asset) => validExtensions.some((validExtension) => asset.endsWith(validExtension)));
     if (matchingAssets.length === 0) {
         return;
+    }
+    if (omitExtension) {
+        matchingAssets = matchingAssets.map((asset) => asset.slice(0, asset.lastIndexOf(".")));
     }
     const discriminatedUnion = matchingAssets
         .map((asset) => `'${asset}'`)
