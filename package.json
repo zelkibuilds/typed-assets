@@ -7,9 +7,14 @@
     "src",
     "dist"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zelkibuilds/typed-assets.git"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
+    "build": "tsc",
+    "publish-pkg": "tsc; yarn publish;"
   },
   "author": "zelki <zelki.codes@protonmail.com>",
   "license": "MIT",
