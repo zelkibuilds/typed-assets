@@ -9,7 +9,10 @@ import varname from "varname";
 import { Default } from "./enums";
 import { processOmitExtensionConfig } from "../helpers/extensions";
 
-type GenerateMappingState = Omit<ResolvedConfigEntry, "validExtensions">;
+type GenerateMappingState = Omit<
+  ResolvedConfigEntry,
+  "validExtensions" | "inputDir" | "aliasedInputDir"
+>;
 
 interface AssetsMappingConfig extends GenerateMappingState {
   omitExtension: OmitExtensionsConfig;
@@ -20,8 +23,6 @@ export async function generateAssetsMapping(
   config: AssetsMappingConfig
 ) {
   const {
-    inputDir,
-    aliasedInputDir,
     aliasedOutputDir,
     outputDir: outDir,
     type = Default.type,
