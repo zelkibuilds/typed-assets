@@ -9,6 +9,8 @@ import varname from "varname";
 import { Default } from "./enums";
 import { processOmitExtensionConfig } from "../helpers/extensions";
 
+import { CODE_GENERATION } from "../constants/messages";
+
 type GenerateMappingState = Omit<
   ResolvedConfigEntry,
   "validExtensions" | "inputDir" | "aliasedInputDir"
@@ -53,9 +55,11 @@ export async function generateAssetsMapping(
     ${assetVarnames.join(", ")}
   }`;
 
-  const typedExportsFragment = `\n\nconst mapping: Record<${type}, string> = ${exportsFragment};\n\nexport default mapping;`;
+  const typedExportsFragment = `const mapping: Record<${type}, string> = ${exportsFragment};\n\nexport default mapping;`;
 
-  const fileContent = `${importAssetTypeFragment}${importsFragment.join(
+  const fileContent = `${
+    CODE_GENERATION.generatedFileHeader
+  }${importAssetTypeFragment}${importsFragment.join(
     "\n"
   )}${typedExportsFragment}`;
 

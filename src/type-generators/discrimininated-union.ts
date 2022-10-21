@@ -8,6 +8,7 @@ import varname from "varname";
 
 import { processOmitExtensionConfig } from "../helpers/extensions";
 import { Default } from "./enums";
+import { CODE_GENERATION } from "../constants/messages";
 
 type GenerateAssetsState = Pick<
   ConfigEntry,
@@ -42,7 +43,7 @@ export async function generateAssetsType(
     .map((asset) => `'${varname.camelback(asset)}'`)
     .join(" | ");
 
-  const fileContent = `export type ${type} = ${discriminatedUnion};`;
+  const fileContent = `${CODE_GENERATION.generatedFileHeader}export type ${type} = ${discriminatedUnion};`;
 
   await writeFile(assetTypeFilePath, fileContent);
 
