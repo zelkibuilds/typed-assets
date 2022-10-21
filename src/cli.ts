@@ -1,5 +1,10 @@
 #!/usr/bin/env node
-import type { Config, ResolvedConfigEntry, AliasConfig } from "./types";
+import type {
+  Config,
+  ResolvedConfig,
+  ResolvedConfigEntry,
+  AliasConfig,
+} from "./types";
 
 import path from "node:path";
 import { readdir } from "node:fs/promises";
@@ -24,32 +29,10 @@ const tsConfigPath = path.resolve("tsconfig.json");
     return;
   }
 
-  if (config.aliasedPaths) {
-    let tsConfig: AliasConfig;
-
-    try {
-      tsConfig = await import(tsConfigPath);
-    } catch (e) {
-      console.error(
-        "`aliasedPath` option requires missing tsconfig.json file at project root"
-      );
-      return;
-    }
-
-    validateAliasConfig(tsConfig);
-
-    const resolvedEntries = config.entries.map((aliasedEntry) =>
-      resolveAliasedEntry(aliasedEntry, tsConfig)
-    );
-
-    config = {
-      ...config,
-      entries: resolvedEntries,
-    };
-  }
+  const resolvedConfig = await handleAliasedPaths(config);
 
   await Promise.all(
-    config.entries.map((entry) =>
+    resolvedConfig.entries.map((entry) =>
       processEntry(entry, Boolean(config.prettierFormat))
     )
   );
@@ -78,4 +61,38 @@ async function processEntry(entry: ResolvedConfigEntry, globalFormat: boolean) {
     generateAssetsType(matchingAssets, mergedConfigEntry),
     generateAssetsMapping(matchingAssets, mergedConfigEntry),
   ]);
+}
+
+async function handleAliasedPaths(config: Config): Promise<ResolvedConfig> {
+  if (config.aliasedPaths) {
+    let tsConfig: AliasConfig;
+
+    try {
+      tsConfig = await import(tsConfigPath);
+    } catch (e) {
+      throw new Error(
+        "`aliasedPath` option requires missing tsconfig.json file at project root"
+      );
+    }
+
+    validateAliasConfig(tsConfig);
+
+    const resolvedEntries = config.entries.map((aliasedEntry) =>
+      resolveAliasedEntry(aliasedEntry, tsConfig)
+    );
+
+    return {
+      ...config,
+      entries: resolvedEntries,
+    };
+  } else {
+    return {
+      ...config,
+      entries: config.entries.map((entry) => ({
+        ...entry,
+        aliasedInputDir: null,
+        aliasedOutputDir: null,
+      })),
+    };
+  }
 }

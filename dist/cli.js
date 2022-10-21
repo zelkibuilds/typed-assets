@@ -46,23 +46,8 @@ const tsConfigPath = node_path_1.default.resolve("tsconfig.json");
         console.error("Error(typed-assets): missing config file", e);
         return;
     }
-    if (config.aliasedPaths) {
-        let tsConfig;
-        try {
-            tsConfig = await Promise.resolve().then(() => __importStar(require(tsConfigPath)));
-        }
-        catch (e) {
-            console.error("`aliasedPath` option requires missing tsconfig.json file at project root");
-            return;
-        }
-        (0, validator_1.validateAliasConfig)(tsConfig);
-        const resolvedEntries = config.entries.map((aliasedEntry) => (0, alias_resolver_1.resolveAliasedEntry)(aliasedEntry, tsConfig));
-        config = {
-            ...config,
-            entries: resolvedEntries,
-        };
-    }
-    await Promise.all(config.entries.map((entry) => processEntry(entry, Boolean(config.prettierFormat))));
+    const resolvedConfig = await handleAliasedPaths(config);
+    await Promise.all(resolvedConfig.entries.map((entry) => processEntry(entry, Boolean(config.prettierFormat))));
 })();
 async function processEntry(entry, globalFormat) {
     (0, validator_1.validateEntry)(entry);
@@ -81,4 +66,31 @@ async function processEntry(entry, globalFormat) {
         (0, discrimininated_union_1.generateAssetsType)(matchingAssets, mergedConfigEntry),
         (0, mapping_1.generateAssetsMapping)(matchingAssets, mergedConfigEntry),
     ]);
+}
+async function handleAliasedPaths(config) {
+    if (config.aliasedPaths) {
+        let tsConfig;
+        try {
+            tsConfig = await Promise.resolve().then(() => __importStar(require(tsConfigPath)));
+        }
+        catch (e) {
+            throw new Error("`aliasedPath` option requires missing tsconfig.json file at project root");
+        }
+        (0, validator_1.validateAliasConfig)(tsConfig);
+        const resolvedEntries = config.entries.map((aliasedEntry) => (0, alias_resolver_1.resolveAliasedEntry)(aliasedEntry, tsConfig));
+        return {
+            ...config,
+            entries: resolvedEntries,
+        };
+    }
+    else {
+        return {
+            ...config,
+            entries: config.entries.map((entry) => ({
+                ...entry,
+                aliasedInputDir: null,
+                aliasedOutputDir: null,
+            })),
+        };
+    }
 }

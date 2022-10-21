@@ -22,10 +22,22 @@ export function resolveAliasedEntry(
 
   return {
     ...entry,
-    aliasedInputDir: entry.inputDir,
+    aliasedInputDir: isAliased(entry.inputDir, aliasMap)
+      ? entry.inputDir
+      : null,
+    aliasedOutputDir: isAliased(entry.outputDir, aliasMap)
+      ? entry.inputDir
+      : null,
     inputDir: resolveAliasedPath(entry.inputDir, aliasMap),
     outputDir: resolveAliasedPath(entry.outputDir, aliasMap),
   };
+}
+
+function isAliased(path: string, aliasMap: Record<string, string>) {
+  const aliases = Object.keys(aliasMap);
+  const matchingAlias = aliases.find((alias) => path.startsWith(alias));
+
+  return Boolean(matchingAlias);
 }
 
 function resolveAliasedPath(path: string, aliasMap: Record<string, string>) {

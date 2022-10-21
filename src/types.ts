@@ -9,14 +9,10 @@ export type ConfigEntry = {
   omitExtension?: OmitExtensionsConfig;
 };
 
-export type ResolvedConfigEntry = ConfigEntry & { aliasedInputDir?: string };
-
-export type AliasConfig = {
-  compilerOptions: {
-    baseUrl: string;
-    paths: Record<string, string[]>;
-  };
-};
+export interface ResolvedConfigEntry extends ConfigEntry {
+  aliasedInputDir: string | null;
+  aliasedOutputDir: string | null;
+}
 
 export type Config = {
   entries: ConfigEntry[];
@@ -24,8 +20,19 @@ export type Config = {
   aliasedPaths?: boolean;
 };
 
+export interface ResolvedConfig extends Config {
+  entries: ResolvedConfigEntry[];
+}
+
 export type OutputTargets = "assetsType" | "assetsMapping";
 
 export type OmitExtensionsConfig =
   | boolean
   | { [key in OutputTargets]?: boolean };
+
+export type AliasConfig = {
+  compilerOptions: {
+    baseUrl: string;
+    paths: Record<string, string[]>;
+  };
+};

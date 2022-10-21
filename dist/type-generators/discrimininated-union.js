@@ -8,12 +8,9 @@ const node_path_1 = __importDefault(require("node:path"));
 const node_child_process_1 = require("node:child_process");
 const promises_1 = require("node:fs/promises");
 const extensions_1 = require("../helpers/extensions");
-const DEFAULTS = {
-    filename: "asset-types.ts",
-    type: "Asset",
-};
+const enums_1 = require("./enums");
 async function generateAssetsType(assets, config) {
-    const { outputDir: outDir, typeFilename: outFile = DEFAULTS.filename, omitExtension, prettierFormat, type = DEFAULTS.type, } = config;
+    const { outputDir: outDir, typeFilename: outFile = enums_1.Default.filename, omitExtension, prettierFormat, type = enums_1.Default.type, } = config;
     const preparedAssets = (0, extensions_1.processOmitExtensionConfig)(assets, omitExtension, "assetsType");
     const assetTypeFilePath = node_path_1.default.join(outDir, outFile);
     const discriminatedUnion = preparedAssets
