@@ -17,11 +17,22 @@ function resolveAliasedEntry(entry, config) {
     }, accumulator);
     return {
         ...entry,
+        aliasedInputDir: isAliased(entry.inputDir, aliasMap)
+            ? entry.inputDir
+            : null,
+        aliasedOutputDir: isAliased(entry.outputDir, aliasMap)
+            ? entry.outputDir
+            : null,
         inputDir: resolveAliasedPath(entry.inputDir, aliasMap),
         outputDir: resolveAliasedPath(entry.outputDir, aliasMap),
     };
 }
 exports.resolveAliasedEntry = resolveAliasedEntry;
+function isAliased(path, aliasMap) {
+    const aliases = Object.keys(aliasMap);
+    const matchingAlias = aliases.find((alias) => path.startsWith(alias));
+    return Boolean(matchingAlias);
+}
 function resolveAliasedPath(path, aliasMap) {
     const aliases = Object.keys(aliasMap);
     const matchingAlias = aliases.find((alias) => path.startsWith(alias));

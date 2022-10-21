@@ -1,10 +1,19 @@
 #!/usr/bin/env node
-import type { Config, ConfigEntry, AliasConfig } from "./types";
+import type {
+  Config,
+  ResolvedConfig,
+  ResolvedConfigEntry,
+  AliasConfig,
+} from "./types";
 
 import path from "node:path";
+import { readdir } from "node:fs/promises";
+
 import { validateEntry, validateAliasConfig } from "./validator";
-import { generateAssetTypes } from "./generate-types";
+import { generateAssetsType } from "./type-generators/discrimininated-union";
+import { generateAssetsMapping } from "./type-generators/mapping";
 import { resolveAliasedEntry } from "./alias-resolver";
+import { formatExtensions } from "./helpers/extensions";
 
 const configFilename = "typed-assets.config.cjs";
 const configPath = path.resolve(configFilename);
@@ -20,16 +29,50 @@ const tsConfigPath = path.resolve("tsconfig.json");
     return;
   }
 
+  const resolvedConfig = await handleAliasedPaths(config);
+
+  await Promise.all(
+    resolvedConfig.entries.map((entry) =>
+      processEntry(entry, Boolean(config.prettierFormat))
+    )
+  );
+})();
+
+async function processEntry(entry: ResolvedConfigEntry, globalFormat: boolean) {
+  validateEntry(entry);
+
+  const assets = await readdir(entry.inputDir);
+  const validExtensions = formatExtensions(entry.validExtensions);
+  const matchingAssets = assets.filter((asset) =>
+    validExtensions.some((validExtension) => asset.endsWith(validExtension))
+  );
+
+  if (matchingAssets.length === 0) {
+    return;
+  }
+
+  const mergedConfigEntry = {
+    ...entry,
+    prettierFormat: globalFormat || Boolean(entry.prettierFormat),
+    omitExtension: entry.omitExtension ?? false,
+  };
+
+  return Promise.all([
+    generateAssetsType(matchingAssets, mergedConfigEntry),
+    generateAssetsMapping(matchingAssets, mergedConfigEntry),
+  ]);
+}
+
+async function handleAliasedPaths(config: Config): Promise<ResolvedConfig> {
   if (config.aliasedPaths) {
     let tsConfig: AliasConfig;
 
     try {
       tsConfig = await import(tsConfigPath);
     } catch (e) {
-      console.error(
+      throw new Error(
         "`aliasedPath` option requires missing tsconfig.json file at project root"
       );
-      return;
     }
 
     validateAliasConfig(tsConfig);
@@ -38,31 +81,18 @@ const tsConfigPath = path.resolve("tsconfig.json");
       resolveAliasedEntry(aliasedEntry, tsConfig)
     );
 
-    config = {
+    return {
       ...config,
       entries: resolvedEntries,
     };
+  } else {
+    return {
+      ...config,
+      entries: config.entries.map((entry) => ({
+        ...entry,
+        aliasedInputDir: null,
+        aliasedOutputDir: null,
+      })),
+    };
   }
-
-  await Promise.all(
-    config.entries.map((entry) =>
-      processEntry(entry, Boolean(config.prettierFormat))
-    )
-  );
-})();
-
-async function processEntry(entry: ConfigEntry, globalFormat: boolean) {
-  validateEntry(entry);
-
-  return generateAssetTypes({
-    ...entry,
-    validExtensions: formatExtensions(entry.validExtensions),
-    prettierFormat: globalFormat || entry.prettierFormat,
-  });
-}
-
-function formatExtensions(extensions: string[]) {
-  return extensions.map((extension) =>
-    extension.startsWith(".") ? extension : `.${extension}`
-  );
 }
