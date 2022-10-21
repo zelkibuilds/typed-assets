@@ -13,15 +13,15 @@ const enums_1 = require("./enums");
 const extensions_1 = require("../helpers/extensions");
 const messages_1 = require("../constants/messages");
 async function generateAssetsMapping(assets, config) {
-    const { aliasedOutputDir, outputDir: outDir, type = enums_1.Default.type, typeFilename: outTypeFile = enums_1.Default.filename, mappingsFilename: outMappingsFile = enums_1.Default.mappingsFilename, omitExtension, prettierFormat, } = config;
+    const { aliasedInputDir, inputDir, aliasedOutputDir, outputDir: outDir, type = enums_1.Default.type, typeFilename: outTypeFile = enums_1.Default.filename, mappingsFilename: outMappingsFile = enums_1.Default.mappingsFilename, omitExtension, prettierFormat, } = config;
     const preparedAssets = (0, extensions_1.processOmitExtensionConfig)(assets, omitExtension, "assetsMapping");
     const assetVarnames = preparedAssets.map((asset) => varname_1.default.camelback(asset));
     const importAssetTypeFragment = `import type { ${type} } from "${aliasedOutputDir ?? outDir}/${outTypeFile}";\n\n`;
-    const importsFragment = assetVarnames.map((asset, index) => `import ${asset} from "${aliasedOutputDir ?? outDir}/${assets[index]}";`);
+    const importsFragment = assetVarnames.map((asset, index) => `import ${asset} from "${aliasedInputDir ?? inputDir}/${assets[index]}";`);
     const exportsFragment = `{
     ${assetVarnames.join(", ")}
   }`;
-    const typedExportsFragment = `const mapping: Record<${type}, string> = ${exportsFragment};\n\nexport default mapping;`;
+    const typedExportsFragment = `\n\nconst mapping: Record<${type}, string> = ${exportsFragment};\n\nexport default mapping;`;
     const fileContent = `${messages_1.CODE_GENERATION.generatedFileHeader}${importAssetTypeFragment}${importsFragment.join("\n")}${typedExportsFragment}`;
     const outPath = node_path_1.default.join(outDir, `${outMappingsFile}.ts`);
     await (0, promises_1.writeFile)(outPath, fileContent);

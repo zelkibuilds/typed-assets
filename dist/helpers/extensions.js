@@ -9,16 +9,16 @@ function processOmitExtensionConfig(assets, extensionConfig, mode) {
     const shouldOmitExtension = typeof extensionConfig === "boolean"
         ? extensionConfig
         : extensionConfig[mode];
-    if (shouldOmitExtension)
+    if (shouldOmitExtension) {
         return assets.map((asset) => asset.slice(0, asset.lastIndexOf(".")));
-    return mode === "assetsType"
-        ? assets
-        : assets.map((asset) => {
-            const extensionStartIndex = asset.lastIndexOf(".");
-            const extension = asset.substring(extensionStartIndex + 1);
-            return (asset.substring(extensionStartIndex) +
-                extension.charAt(0).toUpperCase() +
-                extension.slice(1));
-        });
+    }
+    return mode === "assetsType" ? assets : assets.map(getAssetNameWithExtension);
 }
 exports.processOmitExtensionConfig = processOmitExtensionConfig;
+function getAssetNameWithExtension(asset) {
+    const extensionStartIndex = asset.lastIndexOf(".");
+    const extension = asset.substring(extensionStartIndex + 1);
+    return (asset.substring(0, extensionStartIndex) +
+        extension.charAt(0).toUpperCase() +
+        extension.slice(1));
+}

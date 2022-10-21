@@ -11,10 +11,7 @@ import { processOmitExtensionConfig } from "../helpers/extensions";
 
 import { CODE_GENERATION } from "../constants/messages";
 
-type GenerateMappingState = Omit<
-  ResolvedConfigEntry,
-  "validExtensions" | "inputDir" | "aliasedInputDir"
->;
+type GenerateMappingState = Omit<ResolvedConfigEntry, "validExtensions">;
 
 interface AssetsMappingConfig extends GenerateMappingState {
   omitExtension: OmitExtensionsConfig;
@@ -25,6 +22,8 @@ export async function generateAssetsMapping(
   config: AssetsMappingConfig
 ) {
   const {
+    aliasedInputDir,
+    inputDir,
     aliasedOutputDir,
     outputDir: outDir,
     type = Default.type,
@@ -48,14 +47,14 @@ export async function generateAssetsMapping(
 
   const importsFragment = assetVarnames.map(
     (asset, index) =>
-      `import ${asset} from "${aliasedOutputDir ?? outDir}/${assets[index]}";`
+      `import ${asset} from "${aliasedInputDir ?? inputDir}/${assets[index]}";`
   );
 
   const exportsFragment = `{
     ${assetVarnames.join(", ")}
   }`;
 
-  const typedExportsFragment = `const mapping: Record<${type}, string> = ${exportsFragment};\n\nexport default mapping;`;
+  const typedExportsFragment = `\n\nconst mapping: Record<${type}, string> = ${exportsFragment};\n\nexport default mapping;`;
 
   const fileContent = `${
     CODE_GENERATION.generatedFileHeader

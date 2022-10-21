@@ -16,19 +16,20 @@ export function processOmitExtensionConfig(
       ? extensionConfig
       : extensionConfig[mode];
 
-  if (shouldOmitExtension)
+  if (shouldOmitExtension) {
     return assets.map((asset) => asset.slice(0, asset.lastIndexOf(".")));
+  }
 
-  return mode === "assetsType"
-    ? assets
-    : assets.map((asset) => {
-        const extensionStartIndex = asset.lastIndexOf(".");
-        const extension = asset.substring(extensionStartIndex + 1);
+  return mode === "assetsType" ? assets : assets.map(getAssetNameWithExtension);
+}
 
-        return (
-          asset.substring(extensionStartIndex) +
-          extension.charAt(0).toUpperCase() +
-          extension.slice(1)
-        );
-      });
+function getAssetNameWithExtension(asset: string) {
+  const extensionStartIndex = asset.lastIndexOf(".");
+  const extension = asset.substring(extensionStartIndex + 1);
+
+  return (
+    asset.substring(0, extensionStartIndex) +
+    extension.charAt(0).toUpperCase() +
+    extension.slice(1)
+  );
 }
