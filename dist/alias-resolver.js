@@ -21,7 +21,7 @@ function resolveAliasedEntry(entry, config) {
             ? entry.inputDir
             : null,
         aliasedOutputDir: isAliased(entry.outputDir, aliasMap)
-            ? entry.inputDir
+            ? entry.outputDir
             : null,
         inputDir: resolveAliasedPath(entry.inputDir, aliasMap),
         outputDir: resolveAliasedPath(entry.outputDir, aliasMap),

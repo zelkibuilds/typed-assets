@@ -1,5 +1,5 @@
 export enum Default {
-  filename = "assets-type.ts",
-  mappingsFilename = "assets-mapping.ts",
+  filename = "assets-type",
+  mappingsFilename = "assets-mapping",
   type = "Asset",
 }

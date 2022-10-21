@@ -3,6 +3,8 @@ import type { ResolvedConfigEntry, OmitExtensionsConfig } from "../types";
 import path from "node:path";
 import { exec } from "node:child_process";
 import { writeFile } from "node:fs/promises";
+/* @ts-ignore */
+import varname from "varname";
 
 import { Default } from "./enums";
 import { processOmitExtensionConfig } from "../helpers/extensions";
@@ -35,26 +37,28 @@ export async function generateAssetsMapping(
     "assetsMapping"
   );
 
-  const importAssetTypeFragment = `import type ${type} from "${
-    aliasedOutputDir ?? outDir
-  }/${outTypeFile}";\n`;
+  const assetVarnames = preparedAssets.map((asset) => varname.camelback(asset));
 
-  const importsFragment = preparedAssets.map(
+  const importAssetTypeFragment = `import type { ${type} } from "${
+    aliasedOutputDir ?? outDir
+  }/${outTypeFile}";\n\n`;
+
+  const importsFragment = assetVarnames.map(
     (asset, index) =>
-      `import ${asset} from "${aliasedInputDir ?? inputDir}/${
-        assets[index]
-      }";\n`
+      `import ${asset} from "${aliasedOutputDir ?? outDir}/${assets[index]}";`
   );
 
   const exportsFragment = `{
-    ${preparedAssets.join(", ")}
-  };`;
+    ${assetVarnames.join(", ")}
+  }`;
 
-  const typedExportsFragment = `const mapping: Record<${type}, string> = ${exportsFragment};\nexport default mapping;`;
+  const typedExportsFragment = `\n\nconst mapping: Record<${type}, string> = ${exportsFragment};\n\nexport default mapping;`;
 
-  const fileContent = `${importAssetTypeFragment} ${importsFragment} ${typedExportsFragment}`;
+  const fileContent = `${importAssetTypeFragment}${importsFragment.join(
+    "\n"
+  )}${typedExportsFragment}`;
 
-  const outPath = path.join(outDir, outMappingsFile);
+  const outPath = path.join(outDir, `${outMappingsFile}.ts`);
 
   await writeFile(outPath, fileContent);
 
