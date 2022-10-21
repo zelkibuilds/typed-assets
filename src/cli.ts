@@ -2,9 +2,12 @@
 import type { Config, ConfigEntry, AliasConfig } from "./types";
 
 import path from "node:path";
+import { readdir } from "node:fs/promises";
+
 import { validateEntry, validateAliasConfig } from "./validator";
-import { generateAssetTypes } from "./generate-types";
+import { generateAssetsType } from "./type-generators/discrimininated-union";
 import { resolveAliasedEntry } from "./alias-resolver";
+import { formatExtensions } from "./helpers/extensions";
 
 const configFilename = "typed-assets.config.cjs";
 const configPath = path.resolve(configFilename);
@@ -54,15 +57,21 @@ const tsConfigPath = path.resolve("tsconfig.json");
 async function processEntry(entry: ConfigEntry, globalFormat: boolean) {
   validateEntry(entry);
 
-  return generateAssetTypes({
-    ...entry,
-    validExtensions: formatExtensions(entry.validExtensions),
-    prettierFormat: globalFormat || entry.prettierFormat,
-  });
-}
-
-function formatExtensions(extensions: string[]) {
-  return extensions.map((extension) =>
-    extension.startsWith(".") ? extension : `.${extension}`
+  const assets = await readdir(entry.inputDir);
+  const validExtensions = formatExtensions(entry.validExtensions);
+  const matchingAssets = assets.filter((asset) =>
+    validExtensions.some((validExtension) => asset.endsWith(validExtension))
   );
+
+  if (matchingAssets.length === 0) {
+    return;
+  }
+
+  const mergedConfigEntry = {
+    ...entry,
+    prettierFormat: globalFormat || Boolean(entry.prettierFormat),
+    omitExtension: entry.omitExtension ?? false,
+  };
+
+  return Promise.all([generateAssetsType(matchingAssets, mergedConfigEntry)]);
 }

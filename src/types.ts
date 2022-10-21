@@ -2,10 +2,11 @@ export type ConfigEntry = {
   inputDir: string;
   outputDir: string;
   validExtensions: string[];
-  outFilename?: string;
+  typeFilename?: string;
+  mappingsFilename?: string;
   type?: string;
   prettierFormat?: boolean;
-  omitExtension?: boolean;
+  omitExtension?: OmitExtensionsConfig;
 };
 
 export type AliasConfig = {
@@ -20,3 +21,9 @@ export type Config = {
   prettierFormat?: boolean;
   aliasedPaths?: boolean;
 };
+
+export type OutputTargets = "assetsType" | "assetsMapping";
+
+export type OmitExtensionsConfig =
+  | boolean
+  | { [key in OutputTargets]?: boolean };
