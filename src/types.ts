@@ -9,6 +9,8 @@ export type ConfigEntry = {
   omitExtension?: OmitExtensionsConfig;
 };
 
+export type ResolvedConfigEntry = ConfigEntry & { aliasedInputDir?: string };
+
 export type AliasConfig = {
   compilerOptions: {
     baseUrl: string;

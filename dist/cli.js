@@ -28,9 +28,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const node_path_1 = __importDefault(require("node:path"));
+const promises_1 = require("node:fs/promises");
 const validator_1 = require("./validator");
-const generate_types_1 = require("./generate-types");
+const discrimininated_union_1 = require("./type-generators/discrimininated-union");
+const mapping_1 = require("./type-generators/mapping");
 const alias_resolver_1 = require("./alias-resolver");
+const extensions_1 = require("./helpers/extensions");
 const configFilename = "typed-assets.config.cjs";
 const configPath = node_path_1.default.resolve(configFilename);
 const tsConfigPath = node_path_1.default.resolve("tsconfig.json");
@@ -63,12 +66,19 @@ const tsConfigPath = node_path_1.default.resolve("tsconfig.json");
 })();
 async function processEntry(entry, globalFormat) {
     (0, validator_1.validateEntry)(entry);
-    return (0, generate_types_1.generateAssetTypes)({
+    const assets = await (0, promises_1.readdir)(entry.inputDir);
+    const validExtensions = (0, extensions_1.formatExtensions)(entry.validExtensions);
+    const matchingAssets = assets.filter((asset) => validExtensions.some((validExtension) => asset.endsWith(validExtension)));
+    if (matchingAssets.length === 0) {
+        return;
+    }
+    const mergedConfigEntry = {
         ...entry,
-        validExtensions: formatExtensions(entry.validExtensions),
-        prettierFormat: globalFormat || entry.prettierFormat,
-    });
-}
-function formatExtensions(extensions) {
-    return extensions.map((extension) => extension.startsWith(".") ? extension : `.${extension}`);
+        prettierFormat: globalFormat || Boolean(entry.prettierFormat),
+        omitExtension: entry.omitExtension ?? false,
+    };
+    return Promise.all([
+        (0, discrimininated_union_1.generateAssetsType)(matchingAssets, mergedConfigEntry),
+        (0, mapping_1.generateAssetsMapping)(matchingAssets, mergedConfigEntry),
+    ]);
 }

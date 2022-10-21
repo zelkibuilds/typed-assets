@@ -17,6 +17,7 @@ function resolveAliasedEntry(entry, config) {
     }, accumulator);
     return {
         ...entry,
+        aliasedInputDir: entry.inputDir,
         inputDir: resolveAliasedPath(entry.inputDir, aliasMap),
         outputDir: resolveAliasedPath(entry.outputDir, aliasMap),
     };

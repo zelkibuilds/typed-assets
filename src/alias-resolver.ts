@@ -1,11 +1,11 @@
-import type { ConfigEntry, AliasConfig } from "./types";
+import type { ConfigEntry, ResolvedConfigEntry, AliasConfig } from "./types";
 
 import path from "node:path";
 
 export function resolveAliasedEntry(
   entry: ConfigEntry,
   config: AliasConfig
-): ConfigEntry {
+): ResolvedConfigEntry {
   const { baseUrl, paths } = config.compilerOptions;
 
   const accumulator: Record<string, string> = {};
@@ -22,6 +22,7 @@ export function resolveAliasedEntry(
 
   return {
     ...entry,
+    aliasedInputDir: entry.inputDir,
     inputDir: resolveAliasedPath(entry.inputDir, aliasMap),
     outputDir: resolveAliasedPath(entry.outputDir, aliasMap),
   };
